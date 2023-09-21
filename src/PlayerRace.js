@@ -1,14 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 import Car from "./images/car.png"
 
-function PlayerRace() {
+function PlayerRace(props) {
   const raceDivRef = useRef(null);
-  const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination.");
+  const raceCarRef = useRef(null);
+  //const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination.");
+  const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered");
   const[promptPosition, setPromptPosition] = useState(0);
   const[playerInput, setPlayerInput] = useState("");
 
   useEffect(() => {
-    console.log(promptPosition, playerPrompt.length);
+    let playerProgress = promptPosition / playerPrompt.length;
+    let carLeft = (raceDivRef.current.offsetWidth * playerProgress) - (280 / 2);
+    raceCarRef.current.style.left = carLeft + "px";
+    if(promptPosition == playerPrompt.length){
+      props.racerDone(true);
+    }
   }, [promptPosition]);
 
   const renderPlayerPrompt = () => {
@@ -21,7 +28,6 @@ function PlayerRace() {
       let slice = playerPrompt.slice(promptPosition, promptPosition + playerInput.length);
       for(let i = 0; i < slice.length; i++){
         if(slice.charAt(i) == playerInput.charAt(i)){
-          console.log(slice.charAt(i), playerInput.charAt(i));
           greenText += playerInput.charAt(i);
         }
         else{
@@ -36,6 +42,9 @@ function PlayerRace() {
   }
 
   const playerInputChange = (e) => {
+    if(!props.gameStartTime){
+      return;
+    }
     let value = e.target.value;
     if(value.charAt(value.length - 1) == " " || promptPosition + value.length == playerPrompt.length){
       if(value == playerPrompt.slice(promptPosition, promptPosition + value.length)){
@@ -47,12 +56,25 @@ function PlayerRace() {
     setPlayerInput(value);
   }
 
+  const calcWpm = () => {
+    if(!props.gameStartTime){
+      return 0;
+    }
+    let wordsTyped = playerPrompt.slice(0, promptPosition).split(" ").length;
+    let minutesElapsed = (Date.now() - props.gameStartTime) / 1000 / 60;
+    let wordsPerMinute = Math.floor(wordsTyped / minutesElapsed);
+    return Math.max(wordsPerMinute, 0);
+  }
+
   return (
     <div className="playerArea">
       <div className="race" ref={raceDivRef}>
-        <img className="car" src={Car} alt=""></img>
+        <img className="car" src={Car} alt="" ref={raceCarRef}></img>
       </div>
-      {renderPlayerPrompt()}
+      <div className="promptContainer">
+        <div className="playerStats"><h5>{calcWpm()} WPM</h5></div>
+        {renderPlayerPrompt()}
+      </div>
       <input className="playerInput" placeholder="Type here..." value={playerInput} onInput={playerInputChange}></input>
     </div>
 
