@@ -1,0 +1,77 @@
+html, body, #root{
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.app{
+  display: grid;
+  grid-template-rows: auto 1fr;
+
+  min-height: 100vh;
+}
+
+header{
+  display:flex;
+  justify-content: center;
+  align-items: center;
+
+  color: white;
+  background-color: blue;
+}
+
+.gameArea{
+  display: grid;
+  justify-items: center;
+
+  padding: 10px;
+
+  background-color: lightblue;
+}
+
+.playerArea{
+  display: grid;
+  justify-items: center;
+  grid-auto-rows: min-content;
+
+  width: 100%;
+}
+
+.playerPrompt{
+  box-sizing: border-box;
+  width: 50%;
+  padding: 10px;
+
+  font-size: 28px;
+
+  background-color: white;
+}
+
+.playerInput{
+  box-sizing: border-box;
+  height: 50px;
+  width: 50%;
+
+  line-height: 100%;
+  font-size: 32px;
+
+  background-color:  #FFFF99;
+}
+
+.race{
+  position: relative;
+
+  height: 125px;
+  width: 80%;
+  min-width: 1000px;
+
+  border-bottom: 1px solid black;
+}
+
+.car{
+  position: absolute;
+  left: 0;
+
+  object-fit: contain;
+  height: 100%;
+}
