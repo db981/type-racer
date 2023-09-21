@@ -17,7 +17,7 @@ header{
   align-items: center;
 
   color: white;
-  background-color: blue;
+  background-color: navy;
 }
 
 .gameArea{
@@ -45,6 +45,15 @@ header{
   font-size: 28px;
 
   background-color: white;
+  border: 1px solid black;
+}
+
+.greenText{
+  color: rgb(15, 251, 15);
+}
+
+.redText{
+  color: red;
 }
 
 .playerInput{
@@ -56,6 +65,10 @@ header{
   font-size: 32px;
 
   background-color:  #FFFF99;
+}
+
+.playerInput:focus{
+  outline: none;
 }
 
 .race{
