@@ -111,6 +111,33 @@ header{
   outline: none;
 }
 
+.gameControls{
+  display: flex;
+  justify-content: space-around;
+
+  width: 50%;
+
+  margin-top: 10px;
+}
+
+.gameControls > button{
+  height: 50px;
+  width: 250px;
+
+  font-size: 24px;
+
+  background-color: white;
+  color: navy;
+  border: 2px solid navy;
+}
+
+.gameControls > button:hover{
+  cursor: pointer;
+
+  background-color: navy;
+  color: white;
+}
+
 .race{
   position: relative;
 

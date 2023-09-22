@@ -17,6 +17,9 @@ function PlayerRace(props) {
     if(promptPosition == playerPrompt.length){
       props.playerDone(calcWpm());
     }
+    else if(props.isConnected){
+      props.reportPlayerProgress(playerProgress, calcWpm());
+    }
   }, [promptPosition]);
 
   const renderPlayerPrompt = () => {
@@ -43,7 +46,7 @@ function PlayerRace(props) {
   }
 
   const playerInputChange = (e) => {
-    if(!props.runTimer){
+    if(props.timer < 0){
       return;
     }
     let value = e.target.value;
