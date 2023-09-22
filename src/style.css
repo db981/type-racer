@@ -128,4 +128,15 @@ header{
   object-fit: contain;
   width: 280px;
   height: 100%;
+
+  z-index: 1;
+}
+
+.finishLine{
+  position: absolute;
+  right: 0;
+
+  height: 100%;
+
+  transform: rotate(90deg);
 }

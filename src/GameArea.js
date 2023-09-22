@@ -2,39 +2,42 @@ import { useEffect, useRef, useState } from "react";
 import PlayerRace from "./PlayerRace";
 
 function GameArea() {
-  const timerRef = useRef(3);
-  let timerIntervalRef = useRef(null);
-  const [gameStartTime, setGameStartTime] = useState(null);
+  const [timer, setTimer] = useState(null);
+  const [runTimer, setRunTimer] = useState(false);
+  const [raceStartTime, setRaceStartTime] = useState(null);
 
-  const startGame = () => {
-    let startDelaySeconds = 3;
-    let incrementor = -1;
-    let time = startDelaySeconds;
-    setGameStartTime(Date.now() + startDelaySeconds * 1000);
-    timerIntervalRef.current = setInterval(() => {
-      time += incrementor
-      let timerText;
-      if(time == 0){
-        timerText = "GO!";
-        incrementor = 1;
-      }
-      else{
-        timerText = time;
-      }
-      timerRef.current.innerText = timerText;
-    }, 1000);
+  useEffect(() => {
+    let timerInterval;
+    if(raceStartTime && runTimer){
+      setTimer(getTimeDifferenceSeconds());
+      timerInterval = setInterval(() => {
+        setTimer(getTimeDifferenceSeconds());
+      }, 1000);
+    }
+
+    return () => clearInterval(timerInterval);
+  }, [raceStartTime, runTimer]);
+
+  const getTimeDifferenceSeconds = () => {
+    return Math.round((Date.now() - raceStartTime) / 1000);
   }
 
-  const racerDone = (isPlayer) => {
-    setGameStartTime(null);
-    clearInterval(timerIntervalRef.current);
+  const scheduleRace = () => {
+    let startDelaySeconds = 5;
+    setRaceStartTime(Date.now() + startDelaySeconds * 1000);
+    setRunTimer(true);
+  }
+
+  const playerDone = (wpm) => {
+    console.log("Your final WPM is " + wpm);
+    setRunTimer(false);
   }
 
   return (
     <div className="gameArea">
-      <div className="gameTimer" ref={timerRef}>3</div>
-      <PlayerRace gameStartTime={gameStartTime} racerDone={racerDone}></PlayerRace>
-      <button onClick={startGame}>Start</button>
+      <div className="gameTimer">{timer == null ? null : timer == 0 ? "GO!" : Math.abs(timer)}</div>
+      <PlayerRace timer={timer} runTimer={runTimer} playerDone={playerDone}></PlayerRace>
+      <button onClick={scheduleRace}>Start</button>
     </div>
   )
 }
