@@ -5,8 +5,8 @@ import FinishLine from "./images/finishLine.png";
 function PlayerRace(props) {
   const raceDivRef = useRef(null);
   const raceCarRef = useRef(null);
-  const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination.");
-  //const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered");
+  //const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination.");
+  const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered");
   const[promptPosition, setPromptPosition] = useState(0);
   const[playerInput, setPlayerInput] = useState("");
 
@@ -14,13 +14,19 @@ function PlayerRace(props) {
     let playerProgress = promptPosition / playerPrompt.length;
     let carLeft = (raceDivRef.current.offsetWidth - 280) * playerProgress;
     raceCarRef.current.style.left = carLeft + "px";
+    if(props.isConnected){
+      props.reportPlayerProgress(playerProgress, calcWpm());
+    }
+
     if(promptPosition == playerPrompt.length){
       props.playerDone(calcWpm());
     }
-    else if(props.isConnected){
-      props.reportPlayerProgress(playerProgress, calcWpm());
-    }
   }, [promptPosition]);
+
+  useEffect(() => {
+    setPromptPosition(0);
+    setPlayerInput("");
+  }, [props.raceStartTime])
 
   const renderPlayerPrompt = () => {
     let greenText = "";

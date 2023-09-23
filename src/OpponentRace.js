@@ -15,6 +15,7 @@ function OpponentRace(props){
     <div className="race" ref={raceDivRef}>
         <img className="car" src={Car} alt="" ref={raceCarRef}></img>
         <img className="finishLine" src={FinishLine} alt=""></img>
+        <h4 className="raceWpm">{props.wpm / props.timer}</h4>
       </div>
   )
 }

@@ -2,14 +2,20 @@ import { useEffect, useRef, useState } from "react";
 import PlayerRace from "./PlayerRace";
 import OpponentRace from "./OpponentRace";
 import { socket } from "./socket";
+import Gold from "./images/gold.png";
+import Silver from "./images/silver.png";
+import Bronze from "./images/bronze.png";
 
 function GameArea() {
   const [timer, setTimer] = useState(null);
   const [runTimer, setRunTimer] = useState(false);
   const [raceStartTime, setRaceStartTime] = useState(null);
+
   const [isConnected, setIsConnected] = useState(false);
   const [onlineGameId, setOnlineGameId] = useState(null);
-  const [opponents, setOpponents] = useState(null);
+  const [onlinePlayerId, setOnlinePlayerId] = useState(null);
+  const [onlineParticipants, setOnlineParticipants] = useState(null);
+  const [onlineGameResult, setOnlineGameResult] = useState(null);
 
   useEffect(() => {
     function onConnect() {
@@ -19,6 +25,9 @@ function GameArea() {
 
     function onDisconnect() {
       setIsConnected(false);
+      setOnlineGameId(null);
+      setOnlinePlayerId(null);
+      setOnlineParticipants(null);
     }
 
     socket.on('connect', onConnect);
@@ -28,12 +37,29 @@ function GameArea() {
     });
     socket.on('schedule_online_game', (gameInfo) => {
       setOnlineGameId(gameInfo.gameId);
+      setOnlinePlayerId(gameInfo.id);
+      setOnlineParticipants(gameInfo.participants);
       scheduleRace(gameInfo.gameStartTime);
     });
-    socket.on('report_opponent_progress', (participants) => {
-      console.log(participants);
-      setOpponents(participants);
+    socket.on('report_participant_progress', (participants) => {
+      setOnlineParticipants(participants);
     });
+    socket.on('report_player_result', (position) => {
+      let result;
+      if(position == 1){
+        result = <img className="medal" src={Gold} alt=""></img>
+      }
+      else if(position == 2){
+        result = <img className="medal" src={Silver} alt=""></img>
+      }
+      else if(position == 3){
+        result = <img className="medal" src={Bronze} alt=""></img>
+      }
+      else{
+        result = position;
+      }
+      setOnlineGameResult(result);
+    })
 
     return () => {
       socket.off('connect', onConnect);
@@ -41,6 +67,7 @@ function GameArea() {
       socket.off('connect_error');
       socket.off('schedule_game_start');
       socket.off('report_opponent_progress');
+      socket.off('report_player_result');
     };
   }, []);
 
@@ -66,17 +93,16 @@ function GameArea() {
   }
 
   const playPractice = () => {
-    if(runTimer || isConnected){
-      return;
-    }
+    socket.disconnect();
     let startDelaySeconds = 5;
     scheduleRace(Date.now() + startDelaySeconds * 1000)
   }
 
   const playOnline = () => {
-    if(runTimer || isConnected){
+    if(isConnected){ //already in queue or playing online
       return;
     }
+    socket.disconnect();
     socket.connect();
   }
 
@@ -89,13 +115,27 @@ function GameArea() {
     if(isConnected){
       socket.emit('player_finished', {gameId: onlineGameId, finishedTime: Date.now(), wpm});
     }
+    else{
+      setRunTimer(false);
+    }
+  }
+
+  const renderOnlineParticipants = () => {
+    let opponentRaces = [];
+    for(const id in onlineParticipants){
+      if(id == onlinePlayerId){
+        continue;
+      }
+      opponentRaces.push(<OpponentRace key={id} progress={onlineParticipants[id].progress} wpm={onlineParticipants[id].wpm}></OpponentRace>);
+    } 
+    return opponentRaces;
   }
 
   return (
     <div className="gameArea">
-      <div className="gameTimer">{timer == null ? null : timer == 0 ? "GO!" : Math.abs(timer)}</div>
-      <OpponentRace progress={0.5}></OpponentRace>
-      <PlayerRace timer={timer} runTimer={runTimer} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
+      <div className="gameTimer">{onlineGameResult ? onlineGameResult : timer == null ? null : timer == 0 ? "GO!" : Math.abs(timer)}</div>
+      {renderOnlineParticipants()}
+      <PlayerRace timer={timer} runTimer={runTimer} raceStartTime={raceStartTime} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
       <div className="gameControls">
         <button onClick={playPractice}>Practice</button>
         <button onClick={playOnline}>{!isConnected ? "Play online" : !onlineGameId ? "In queue..." : "Playing online"}</button>

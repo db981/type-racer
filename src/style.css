@@ -44,6 +44,10 @@ header{
   border: 1px solid black;
 }
 
+.medal{
+  height: 100%;
+}
+
 .playerArea{
   display: grid;
   justify-items: center;
@@ -140,6 +144,8 @@ header{
 
 .race{
   position: relative;
+  display: flex;
+  align-items: center;
 
   height: 125px;
   width: 80%;
@@ -166,4 +172,11 @@ header{
   height: 100%;
 
   transform: rotate(90deg);
+}
+
+.raceWpm{
+  position:absolute;
+  right: -65px;
+  
+  font-size: 24px;
 }
