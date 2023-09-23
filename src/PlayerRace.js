@@ -6,19 +6,18 @@ function PlayerRace(props) {
   const raceDivRef = useRef(null);
   const raceCarRef = useRef(null);
   //const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination.");
-  const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered");
   const[promptPosition, setPromptPosition] = useState(0);
   const[playerInput, setPlayerInput] = useState("");
 
   useEffect(() => {
-    let playerProgress = promptPosition / playerPrompt.length;
+    let playerProgress = promptPosition / props.gamePrompt.length;
     let carLeft = (raceDivRef.current.offsetWidth - 280) * playerProgress;
     raceCarRef.current.style.left = carLeft + "px";
     if(props.isConnected){
-      props.reportPlayerProgress(playerProgress, calcWpm());
+      props.reportPlayerProgress(playerProgress, getWordsTyped());
     }
 
-    if(promptPosition == playerPrompt.length){
+    if(promptPosition == props.gamePrompt.length){
       props.playerDone(calcWpm());
     }
   }, [promptPosition]);
@@ -32,10 +31,10 @@ function PlayerRace(props) {
     let greenText = "";
     let redText = "";
     if(promptPosition > 0){
-      greenText = playerPrompt.slice(0, promptPosition);
+      greenText = props.gamePrompt.slice(0, promptPosition);
     }
     if(playerInput.length){
-      let slice = playerPrompt.slice(promptPosition, promptPosition + playerInput.length);
+      let slice = props.gamePrompt.slice(promptPosition, promptPosition + playerInput.length);
       for(let i = 0; i < slice.length; i++){
         if(slice.charAt(i) == playerInput.charAt(i)){
           greenText += playerInput.charAt(i);
@@ -47,7 +46,7 @@ function PlayerRace(props) {
       }
     }
 
-    let p = <p className="playerPrompt"><span className="greenText">{greenText}</span><span className="redText">{redText}</span>{playerPrompt.slice(promptPosition + playerInput.length)}</p>
+    let p = <p className="playerPrompt"><span className="greenText">{greenText}</span><span className="redText">{redText}</span>{props.gamePrompt.slice(promptPosition + playerInput.length)}</p>
     return p;
   }
 
@@ -56,8 +55,8 @@ function PlayerRace(props) {
       return;
     }
     let value = e.target.value;
-    if(value.charAt(value.length - 1) == " " || promptPosition + value.length == playerPrompt.length){
-      if(value == playerPrompt.slice(promptPosition, promptPosition + value.length)){
+    if(value.charAt(value.length - 1) == " " || promptPosition + value.length == props.gamePrompt.length){
+      if(value == props.gamePrompt.slice(promptPosition, promptPosition + value.length)){
         setPromptPosition((prev) => prev + value.length);
         setPlayerInput("");
         return;
@@ -66,11 +65,15 @@ function PlayerRace(props) {
     setPlayerInput(value);
   }
 
+  const getWordsTyped = () => {
+    return props.gamePrompt.slice(0, promptPosition).split(" ").length;
+  }
+
   const calcWpm = () => {
     if(props.timer <= 0){
       return 0;
     }
-    let wordsTyped = playerPrompt.slice(0, promptPosition).split(" ").length;
+    let wordsTyped = getWordsTyped();
     let minutesElapsed = props.timer / 60;
     let wordsPerMinute = Math.floor(wordsTyped / minutesElapsed);
     return Math.max(wordsPerMinute, 0);
@@ -81,6 +84,7 @@ function PlayerRace(props) {
       <div className="race" ref={raceDivRef}>
         <img className="car" src={Car} alt="" ref={raceCarRef}></img>
         <img className="finishLine" src={FinishLine} alt=""></img>
+        <h4 className="raceWpm">{calcWpm()} WPM</h4>
       </div>
       <div className="promptContainer">
         <div className="playerStats"><h5>{calcWpm()} WPM</h5></div>

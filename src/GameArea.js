@@ -10,6 +10,7 @@ function GameArea() {
   const [timer, setTimer] = useState(null);
   const [runTimer, setRunTimer] = useState(false);
   const [raceStartTime, setRaceStartTime] = useState(null);
+  const [gamePrompt, setGamePrompt] = useState("Still, there are times I am bewildered");
 
   const [isConnected, setIsConnected] = useState(false);
   const [onlineGameId, setOnlineGameId] = useState(null);
@@ -106,8 +107,8 @@ function GameArea() {
     socket.connect();
   }
 
-  const reportPlayerProgress = (playerProgress, wpm) => {
-    socket.emit('report_player_progress', {gameId: onlineGameId, playerProgress, wpm});
+  const reportPlayerProgress = (playerProgress, wordsTyped) => {
+    socket.emit('report_player_progress', {gameId: onlineGameId, playerProgress, wordsTyped});
   }
 
   const playerDone = (wpm) => {
@@ -126,7 +127,7 @@ function GameArea() {
       if(id == onlinePlayerId){
         continue;
       }
-      opponentRaces.push(<OpponentRace key={id} progress={onlineParticipants[id].progress} wpm={onlineParticipants[id].wpm}></OpponentRace>);
+      opponentRaces.push(<OpponentRace key={id} progress={onlineParticipants[id].progress} wordsTyped={onlineParticipants[id].wordsTyped} gamePrompt={gamePrompt} timer={timer}></OpponentRace>);
     } 
     return opponentRaces;
   }
@@ -135,7 +136,7 @@ function GameArea() {
     <div className="gameArea">
       <div className="gameTimer">{onlineGameResult ? onlineGameResult : timer == null ? null : timer == 0 ? "GO!" : Math.abs(timer)}</div>
       {renderOnlineParticipants()}
-      <PlayerRace timer={timer} runTimer={runTimer} raceStartTime={raceStartTime} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
+      <PlayerRace gamePrompt={gamePrompt}timer={timer} runTimer={runTimer} raceStartTime={raceStartTime} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
       <div className="gameControls">
         <button onClick={playPractice}>Practice</button>
         <button onClick={playOnline}>{!isConnected ? "Play online" : !onlineGameId ? "In queue..." : "Playing online"}</button>

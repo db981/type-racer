@@ -11,11 +11,20 @@ function OpponentRace(props){
     raceCarRef.current.style.left = carLeft + "px";
   }, [props.progress]);
 
+  const calcWpm = () => {
+    if(props.timer <= 0){
+      return 0;
+    }
+    let minutesElapsed = props.timer / 60;
+    let wordsPerMinute = Math.floor(props.wordsTyped / minutesElapsed);
+    return Math.max(wordsPerMinute, 0);
+  }
+
   return(
     <div className="race" ref={raceDivRef}>
         <img className="car" src={Car} alt="" ref={raceCarRef}></img>
         <img className="finishLine" src={FinishLine} alt=""></img>
-        <h4 className="raceWpm">{props.wpm / props.timer}</h4>
+        <h4 className="raceWpm">{calcWpm()} WPM</h4>
       </div>
   )
 }
