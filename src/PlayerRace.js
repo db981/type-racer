@@ -5,7 +5,6 @@ import FinishLine from "./images/finishLine.png";
 function PlayerRace(props) {
   const raceDivRef = useRef(null);
   const raceCarRef = useRef(null);
-  //const[playerPrompt, setPlayerPrompt] = useState("Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination.");
   const[promptPosition, setPromptPosition] = useState(0);
   const[playerInput, setPlayerInput] = useState("");
 
@@ -51,7 +50,7 @@ function PlayerRace(props) {
   }
 
   const playerInputChange = (e) => {
-    if(props.timer < 0){
+    if(props.timer == null || props.timer < 0){
       return;
     }
     let value = e.target.value;

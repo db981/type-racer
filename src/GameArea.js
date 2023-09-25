@@ -6,12 +6,18 @@ import Gold from "./images/gold.png";
 import Silver from "./images/silver.png";
 import Bronze from "./images/bronze.png";
 
+let defaultPrompts = ["I know now that it's over. I knew it then. There would be no way, Michael, no way you could ever forgive me, not with this Sicilian thing that's been going on for 2,000 years.", "Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination."];
+const getRandomPrompt = () => {
+  return defaultPrompts[Math.floor(Math.random() * defaultPrompts.length)];
+}
+
 function GameArea() {
   const [timer, setTimer] = useState(null);
   const [runTimer, setRunTimer] = useState(false);
   const [raceStartTime, setRaceStartTime] = useState(null);
-  const [gamePrompt, setGamePrompt] = useState("Still, there are times I am bewildered");
+  const [gamePrompt, setGamePrompt] = useState("");
 
+  const [serverReachable, setServerReachable] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [onlineGameId, setOnlineGameId] = useState(null);
   const [onlinePlayerId, setOnlinePlayerId] = useState(null);
@@ -21,14 +27,17 @@ function GameArea() {
   useEffect(() => {
     function onConnect() {
       setIsConnected(true);
-      console.log("connected");
     }
 
-    function onDisconnect() {
+    function onDisconnect() { //on disconnect reset to initial state
+      setTimer(null);
+      setRunTimer(false);
+      setRaceStartTime(null);
       setIsConnected(false);
       setOnlineGameId(null);
       setOnlinePlayerId(null);
       setOnlineParticipants(null);
+      setOnlineGameResult(null);
     }
 
     socket.on('connect', onConnect);
@@ -60,7 +69,10 @@ function GameArea() {
         result = position;
       }
       setOnlineGameResult(result);
-    })
+    });
+
+    checkServerReachable();
+    let checkServerReachableInterval = setInterval(checkServerReachable, 10000);
 
     return () => {
       socket.off('connect', onConnect);
@@ -69,6 +81,7 @@ function GameArea() {
       socket.off('schedule_game_start');
       socket.off('report_opponent_progress');
       socket.off('report_player_result');
+      clearInterval(checkServerReachableInterval);
     };
   }, []);
 
@@ -88,7 +101,8 @@ function GameArea() {
     return (Date.now() - raceStartTime) / 1000;
   }
 
-  const scheduleRace = (startTime) => {
+  const scheduleRace = (startTime, prompt) => {
+    setGamePrompt(prompt);
     setRaceStartTime(startTime);
     setRunTimer(true);
   }
@@ -96,7 +110,7 @@ function GameArea() {
   const playPractice = () => {
     socket.disconnect();
     let startDelaySeconds = 5;
-    scheduleRace(Date.now() + startDelaySeconds * 1000)
+    scheduleRace(Date.now() + startDelaySeconds * 1000, getRandomPrompt());
   }
 
   const playOnline = () => {
@@ -132,6 +146,24 @@ function GameArea() {
     return opponentRaces;
   }
 
+  const checkServerReachable = async () => {
+    let reachable;
+    try{
+      reachable = (await fetch("http://localhost:4000/api/checkOnline")).status == 200;
+    }
+    catch(err){
+      reachable = false;
+    }
+
+    if(reachable){
+      setServerReachable(true);
+    }
+    else{
+      setServerReachable(false);
+      socket.disconnect();
+    }
+  }
+
   return (
     <div className="gameArea">
       <div className="gameTimer">{onlineGameResult ? onlineGameResult : timer == null ? null : timer == 0 ? "GO!" : Math.abs(timer)}</div>
@@ -139,7 +171,8 @@ function GameArea() {
       <PlayerRace gamePrompt={gamePrompt}timer={timer} runTimer={runTimer} raceStartTime={raceStartTime} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
       <div className="gameControls">
         <button onClick={playPractice}>Practice</button>
-        <button onClick={playOnline}>{!isConnected ? "Play online" : !onlineGameId ? "In queue..." : "Playing online"}</button>
+        {serverReachable ? <button onClick={playOnline}>{!isConnected ? "Play online" : !onlineGameId ? "In queue..." : "Playing online"}</button> :
+                            <button disabled>Server Offline</button>}
       </div>
     </div>
   )
