@@ -45,16 +45,16 @@ function GameArea() {
     socket.on('connect_error', (err) => {
       console.log(err);
     });
-    socket.on('schedule_online_game', (gameInfo) => {
+    socket.on('schedule_online_game', (gameInfo) => { //online game scheduled by server
       setOnlineGameId(gameInfo.gameId);
       setOnlinePlayerId(gameInfo.id);
       setOnlineParticipants(gameInfo.participants);
-      scheduleRace(gameInfo.gameStartTime);
+      scheduleRace(gameInfo.gameStartTime, gameInfo.prompt);
     });
-    socket.on('report_participant_progress', (participants) => {
+    socket.on('report_participant_progress', (participants) => { //received when online game opponent has made progress
       setOnlineParticipants(participants);
     });
-    socket.on('report_player_result', (position) => {
+    socket.on('report_player_result', (position) => { //received when local player has finished
       let result;
       if(position == 1){
         result = <img className="medal" src={Gold} alt=""></img>
@@ -78,7 +78,7 @@ function GameArea() {
       socket.off('connect', onConnect);
       socket.off('disconnect', onDisconnect);
       socket.off('connect_error');
-      socket.off('schedule_game_start');
+      socket.off('schedule_online_game');
       socket.off('report_opponent_progress');
       socket.off('report_player_result');
       clearInterval(checkServerReachableInterval);
@@ -87,7 +87,7 @@ function GameArea() {
 
   useEffect(() => {
     let timerInterval;
-    if(raceStartTime && runTimer){
+    if(raceStartTime && runTimer){ //timer for race
       setTimer(Math.floor(getTimeDifferenceSeconds()));
       timerInterval = setInterval(() => {
         setTimer(Math.floor(getTimeDifferenceSeconds()));
@@ -97,7 +97,7 @@ function GameArea() {
     return () => clearInterval(timerInterval);
   }, [raceStartTime, runTimer]);
 
-  const getTimeDifferenceSeconds = () => {
+  const getTimeDifferenceSeconds = () => { //time to/since race start time
     return (Date.now() - raceStartTime) / 1000;
   }
 
@@ -107,7 +107,7 @@ function GameArea() {
     setRunTimer(true);
   }
 
-  const playPractice = () => {
+  const playPractice = () => { //local race
     socket.disconnect();
     let startDelaySeconds = 5;
     scheduleRace(Date.now() + startDelaySeconds * 1000, getRandomPrompt());
@@ -121,11 +121,11 @@ function GameArea() {
     socket.connect();
   }
 
-  const reportPlayerProgress = (playerProgress, wordsTyped) => {
+  const reportPlayerProgress = (playerProgress, wordsTyped) => { //tell server local player has made progress
     socket.emit('report_player_progress', {gameId: onlineGameId, playerProgress, wordsTyped});
   }
 
-  const playerDone = (wpm) => {
+  const playerDone = (wpm) => { //tell server local player has finished
     setRunTimer(false);
     if(isConnected){
       socket.emit('player_finished', {gameId: onlineGameId, finishedTime: Date.now(), wpm});

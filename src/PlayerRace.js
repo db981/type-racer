@@ -9,7 +9,7 @@ function PlayerRace(props) {
   const[playerInput, setPlayerInput] = useState("");
 
   useEffect(() => {
-    let playerProgress = promptPosition / props.gamePrompt.length;
+    let playerProgress = promptPosition / props.gamePrompt.length; //calculate position for car img
     let carLeft = (raceDivRef.current.offsetWidth - 280) * playerProgress;
     raceCarRef.current.style.left = carLeft + "px";
     if(props.isConnected){
@@ -27,18 +27,18 @@ function PlayerRace(props) {
   }, [props.raceStartTime])
 
   const renderPlayerPrompt = () => {
-    let greenText = "";
-    let redText = "";
+    let greenText = ""; //show green text for correct user input 
+    let redText = ""; //show red text for incorrect user input
     if(promptPosition > 0){
-      greenText = props.gamePrompt.slice(0, promptPosition);
+      greenText = props.gamePrompt.slice(0, promptPosition); 
     }
     if(playerInput.length){
       let slice = props.gamePrompt.slice(promptPosition, promptPosition + playerInput.length);
       for(let i = 0; i < slice.length; i++){
-        if(slice.charAt(i) == playerInput.charAt(i)){
+        if(slice.charAt(i) == playerInput.charAt(i)){ //go character by character checking for error
           greenText += playerInput.charAt(i);
         }
-        else{
+        else{ //if error, rest of input is also error
           redText += slice.slice(i);
           break;
         }
@@ -50,12 +50,12 @@ function PlayerRace(props) {
   }
 
   const playerInputChange = (e) => {
-    if(props.timer == null || props.timer < 0){
+    if(props.timer == null || props.timer < 0){ //ignore if no race or race hasnt started
       return;
     }
     let value = e.target.value;
-    if(value.charAt(value.length - 1) == " " || promptPosition + value.length == props.gamePrompt.length){
-      if(value == props.gamePrompt.slice(promptPosition, promptPosition + value.length)){
+    if(value.charAt(value.length - 1) == " " || promptPosition + value.length == props.gamePrompt.length){ //if end of word or prompt
+      if(value == props.gamePrompt.slice(promptPosition, promptPosition + value.length)){ //(and) if no user input errors
         setPromptPosition((prev) => prev + value.length);
         setPlayerInput("");
         return;
@@ -68,7 +68,7 @@ function PlayerRace(props) {
     return props.gamePrompt.slice(0, promptPosition).split(" ").length;
   }
 
-  const calcWpm = () => {
+  const calcWpm = () => { //wpm = words per minute
     if(props.timer <= 0){
       return 0;
     }
