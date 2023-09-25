@@ -12,9 +12,9 @@ const getRandomPrompt = () => {
 }
 
 function GameArea() {
-  const [timer, setTimer] = useState(null);
-  const [runTimer, setRunTimer] = useState(false);
-  const [raceStartTime, setRaceStartTime] = useState(null);
+  const [timer, setTimer] = useState(null); //time to/since race start time
+  const [runTimer, setRunTimer] = useState(false); //if timer should be running
+  const [raceStartTime, setRaceStartTime] = useState(null); 
   const [gamePrompt, setGamePrompt] = useState("");
 
   const [serverReachable, setServerReachable] = useState(false);
@@ -43,7 +43,7 @@ function GameArea() {
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('connect_error', (err) => {
-      console.log(err);
+      checkServerReachable();
     });
     socket.on('schedule_online_game', (gameInfo) => { //online game scheduled by server
       setOnlineGameId(gameInfo.gameId);
@@ -114,7 +114,7 @@ function GameArea() {
   }
 
   const playOnline = () => {
-    if(isConnected){ //already in queue or playing online
+    if(isConnected && !onlineGameResult){ //already in queue or playing online
       return;
     }
     socket.disconnect();
@@ -147,18 +147,10 @@ function GameArea() {
   }
 
   const checkServerReachable = async () => {
-    let reachable;
     try{
-      reachable = (await fetch("http://localhost:4000/api/checkOnline")).status == 200;
+      setServerReachable((await fetch("http://localhost:4000/api/checkOnline")).status == 200);
     }
     catch(err){
-      reachable = false;
-    }
-
-    if(reachable){
-      setServerReachable(true);
-    }
-    else{
       setServerReachable(false);
       socket.disconnect();
     }
@@ -171,7 +163,7 @@ function GameArea() {
       <PlayerRace gamePrompt={gamePrompt}timer={timer} runTimer={runTimer} raceStartTime={raceStartTime} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
       <div className="gameControls">
         <button onClick={playPractice}>Practice</button>
-        {serverReachable ? <button onClick={playOnline}>{!isConnected ? "Play online" : !onlineGameId ? "In queue..." : "Playing online"}</button> :
+        {serverReachable ? <button onClick={playOnline}>{!isConnected ? "Play online" : !onlineGameId ? "In queue..." : onlineGameResult ? "Play online again" : "Playing online"}</button> :
                             <button disabled>Server Offline</button>}
       </div>
     </div>

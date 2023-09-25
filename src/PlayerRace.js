@@ -50,16 +50,11 @@ function PlayerRace(props) {
   }
 
   const playerInputChange = (e) => {
-    if(props.timer == null || props.timer < 0){ //ignore if no race or race hasnt started
+    if(props.timer == null || props.timer < 0 || e.nativeEvent.inputType == 'insertFromPaste'){ //ignore if no race or race hasnt started or user pasted text
       return;
     }
 
     let value = e.target.value;
-    let nextWordLength = props.gamePrompt.slice(promptPosition, props.gamePrompt.slice(promptPosition).indexOf(" ") + promptPosition).length;
-    if(value.length > nextWordLength + 1){ //dont let user input length exceed next word length (plus space)
-      value = value.slice(0, nextWordLength + 1);
-    }
-
     if(value.charAt(value.length - 1) == " " || promptPosition + value.length == props.gamePrompt.length){ //if end of word or prompt
       if(value == props.gamePrompt.slice(promptPosition, promptPosition + value.length)){ //(and) if no user input errors
         setPromptPosition((prev) => prev + value.length);
