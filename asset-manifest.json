@@ -1,0 +1,18 @@
+{
+  "files": {
+    "main.css": "/type-racer/static/css/main.77d90b8b.css",
+    "main.js": "/type-racer/static/js/main.7ef97afe.js",
+    "static/media/bronze.png": "/type-racer/static/media/bronze.eb302e8320198dc9fb47.png",
+    "static/media/gold.png": "/type-racer/static/media/gold.771ebb6a1003d219dfac.png",
+    "static/media/silver.png": "/type-racer/static/media/silver.6d30d5baffe7a482c481.png",
+    "static/media/car.png": "/type-racer/static/media/car.ca11aad68f4a02876b69.png",
+    "static/media/finishLine.png": "/type-racer/static/media/finishLine.b109672b408a9bbbc3a6.png",
+    "index.html": "/type-racer/index.html",
+    "main.77d90b8b.css.map": "/type-racer/static/css/main.77d90b8b.css.map",
+    "main.7ef97afe.js.map": "/type-racer/static/js/main.7ef97afe.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.77d90b8b.css",
+    "static/js/main.7ef97afe.js"
+  ]
+}
