@@ -13,7 +13,9 @@ function OpponentRace(props) {
   }, [props.progress]);
 
   useEffect(() => {
-    setWpm(calcWpm());
+    if (props.progress < 1) { //update WPM if participant is not finished
+      setWpm(calcWpm());
+    }
   }, [props.progress, props.timer])
 
   const calcWpm = () => {

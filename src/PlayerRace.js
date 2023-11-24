@@ -28,7 +28,9 @@ function PlayerRace(props) {
   }, [props.raceStartTime])
 
   useEffect(() => {
-    setWpm(calcWpm());
+    if (promptPosition < props.gamePrompt.length) {
+      setWpm(calcWpm());
+    }
   }, [props.timer, promptPosition, props.raceStartTime])
 
   const getWordsTyped = () => {

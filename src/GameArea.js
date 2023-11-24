@@ -129,10 +129,12 @@ function GameArea() {
     socket.emit('report_player_progress', { gameId: onlineGameId, playerProgress, wordsTyped });
   }
 
-  const playerDone = (wpm) => { //stop the timer and tell server that player is finished
-    setRunTimer(false);
+  const playerDone = (wpm) => {
     if (isConnected) {
       socket.emit('player_finished', { gameId: onlineGameId, finishedTime: Date.now(), wpm });
+    }
+    else {
+      setRunTimer(false);
     }
   }
 
