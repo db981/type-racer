@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
+import { socket } from "./socket";
 import PlayerRace from "./PlayerRace";
 import OpponentRace from "./OpponentRace";
-import { socket } from "./socket";
 import Gold from "./images/gold.png";
 import Silver from "./images/silver.png";
 import Bronze from "./images/bronze.png";
 
-let defaultPrompts = ["I know now that it's over. I knew it then. There would be no way, Michael, no way you could ever forgive me, not with this Sicilian thing that's been going on for 2,000 years.", "Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination."];
+const defaultPrompts = ["I know now that it's over. I knew it then. There would be no way, Michael, no way you could ever forgive me, not with this Sicilian thing that's been going on for 2,000 years.", "Still, there are times I am bewildered by each mile I have traveled, each meal I have eaten, each person I have known, each room in which I have slept. As ordinary as it all appears, there are times when it is beyond my imagination."];
 const getRandomPrompt = () => {
   return defaultPrompts[Math.floor(Math.random() * defaultPrompts.length)];
 }
@@ -14,7 +14,7 @@ const getRandomPrompt = () => {
 function GameArea() {
   const [timer, setTimer] = useState(null); //time to/since race start time
   const [runTimer, setRunTimer] = useState(false); //if timer should be running
-  const [raceStartTime, setRaceStartTime] = useState(null); 
+  const [raceStartTime, setRaceStartTime] = useState(null);
   const [gamePrompt, setGamePrompt] = useState("");
 
   const [serverReachable, setServerReachable] = useState(false);
@@ -43,29 +43,33 @@ function GameArea() {
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('connect_error', (err) => {
+      socket.disconnect();
       checkServerReachable();
     });
+
     socket.on('schedule_online_game', (gameInfo) => { //online game scheduled by server
       setOnlineGameId(gameInfo.gameId);
       setOnlinePlayerId(gameInfo.id);
       setOnlineParticipants(gameInfo.participants);
       scheduleRace(gameInfo.gameStartTime, gameInfo.prompt);
     });
+
     socket.on('report_participant_progress', (participants) => { //received when online game opponent has made progress
       setOnlineParticipants(participants);
     });
+
     socket.on('report_player_result', (position) => { //received when local player has finished
       let result;
-      if(position == 1){
+      if (position == 1) {
         result = <img className="medal" src={Gold} alt=""></img>
       }
-      else if(position == 2){
+      else if (position == 2) {
         result = <img className="medal" src={Silver} alt=""></img>
       }
-      else if(position == 3){
+      else if (position == 3) {
         result = <img className="medal" src={Bronze} alt=""></img>
       }
-      else{
+      else {
         result = position;
       }
       setOnlineGameResult(result);
@@ -87,7 +91,7 @@ function GameArea() {
 
   useEffect(() => {
     let timerInterval;
-    if(raceStartTime && runTimer){ //timer for race
+    if (raceStartTime && runTimer) { //timer for race, update every second
       setTimer(Math.floor(getTimeDifferenceSeconds()));
       timerInterval = setInterval(() => {
         setTimer(Math.floor(getTimeDifferenceSeconds()));
@@ -114,7 +118,7 @@ function GameArea() {
   }
 
   const playOnline = () => {
-    if(isConnected && !onlineGameResult){ //already in queue or playing online
+    if (isConnected && !onlineGameResult) { //already in queue or playing online
       return;
     }
     socket.disconnect();
@@ -122,35 +126,31 @@ function GameArea() {
   }
 
   const reportPlayerProgress = (playerProgress, wordsTyped) => { //tell server local player has made progress
-    socket.emit('report_player_progress', {gameId: onlineGameId, playerProgress, wordsTyped});
+    socket.emit('report_player_progress', { gameId: onlineGameId, playerProgress, wordsTyped });
   }
 
-  const playerDone = (wpm) => { //tell server local player has finished
+  const playerDone = (wpm) => { //stop the timer and tell server that player is finished
     setRunTimer(false);
-    if(isConnected){
-      socket.emit('player_finished', {gameId: onlineGameId, finishedTime: Date.now(), wpm});
-    }
-    else{
-      setRunTimer(false);
+    if (isConnected) {
+      socket.emit('player_finished', { gameId: onlineGameId, finishedTime: Date.now(), wpm });
     }
   }
 
-  const renderOnlineParticipants = () => {
+  const renderOnlineParticipants = () => { //create OpponentRace components for all opponents in online race
     let opponentRaces = [];
-    for(const id in onlineParticipants){
-      if(id == onlinePlayerId){
-        continue;
+    for (const id in onlineParticipants) {
+      if (id != onlinePlayerId) {
+        opponentRaces.push(<OpponentRace key={id} progress={onlineParticipants[id].progress} wordsTyped={onlineParticipants[id].wordsTyped} gamePrompt={gamePrompt} timer={timer}></OpponentRace>);
       }
-      opponentRaces.push(<OpponentRace key={id} progress={onlineParticipants[id].progress} wordsTyped={onlineParticipants[id].wordsTyped} gamePrompt={gamePrompt} timer={timer}></OpponentRace>);
-    } 
+    }
     return opponentRaces;
   }
 
   const checkServerReachable = async () => {
-    try{
+    try {
       setServerReachable((await fetch("http://localhost:4000/api/checkOnline")).status == 200);
     }
-    catch(err){
+    catch (err) {
       setServerReachable(false);
       socket.disconnect();
     }
@@ -160,11 +160,11 @@ function GameArea() {
     <div className="gameArea">
       <div className="gameTimer">{onlineGameResult ? onlineGameResult : timer == null ? null : timer == 0 ? "GO!" : Math.abs(timer)}</div>
       {renderOnlineParticipants()}
-      <PlayerRace gamePrompt={gamePrompt}timer={timer} runTimer={runTimer} raceStartTime={raceStartTime} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
+      <PlayerRace gamePrompt={gamePrompt} timer={timer} runTimer={runTimer} raceStartTime={raceStartTime} playerDone={playerDone} isConnected={isConnected} reportPlayerProgress={reportPlayerProgress}></PlayerRace>
       <div className="gameControls">
         <button onClick={playPractice}>Practice</button>
         {serverReachable ? <button onClick={playOnline}>{!isConnected ? "Play online" : !onlineGameId ? "In queue..." : onlineGameResult ? "Play online again" : "Playing online"}</button> :
-                            <button disabled>Server Offline</button>}
+          <button disabled>Server Offline</button>}
       </div>
     </div>
   )
